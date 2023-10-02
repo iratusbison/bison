@@ -47,6 +47,12 @@
                                     <td>{{ item.date_created }}</td>
                                 </tr>
                                 <tr>
+                                    <th>QR Code</th>
+                                    <td>
+                                        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>Description</th>
                                     {% if item.description %}
                                     <td>{{ item.description }}</td>
@@ -54,14 +60,7 @@
                                     <td>-</td>
                                     {% endif %}
                                 </tr>
-                                <tr>
-                                    <th>Last restock</th>
-                                    {% if restock %}
-                                    <td>{{ restock}}</td>
-                                    {% else %}
-                                    <td>-</td>
-                                    {% endif %}
-                                </tr>
+                                
                             </tbody>
                         </table>
                     </div>

@@ -1,0 +1,64 @@
+<!-- change_calculation.html -->
+<div class="row">
+    <div class="input-field col s12">
+        <input id="total-price" type="number" name="total_price" step="0.01">
+        <label for="total-price">Total Price</label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="input-field col s12">
+        <input id="amount-received" type="number" name="amount_received" step="0.01">
+        <label for="amount-received">Amount Received</label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="input-field col s12">
+        <select id="payment-method" name="payment_method">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+        </select>
+        <label for="payment-method">Payment Method</label>
+    </div>
+</div>
+
+<div id="change-result" class="row">
+    <div class="col s12">
+        <p>Change: <span id="change-amount">0.00</span></p>
+    </div>
+</div>
+
+<script>
+    // Function to calculate and update change amount
+    function calculateChange() {
+        const totalPrice = parseFloat($("#total-price").val());
+        const amountReceived = parseFloat($("#amount-received").val());
+
+        if (!isNaN(totalPrice) && !isNaN(amountReceived)) {
+            const changeAmount = amountReceived - totalPrice;
+            $("#change-amount").text(changeAmount.toFixed(2));
+        } else {
+            $("#change-amount").text("0.00");
+        }
+    }
+
+    // Listen for changes in payment method
+    $("#payment-method").on("change", function () {
+        const selectedPaymentMethod = $(this).val();
+
+        if (selectedPaymentMethod === "cash") {
+            // Display the change calculation fields
+            $("#change-result").show();
+        } else {
+            // Hide the change calculation fields for non-cash payments
+            $("#change-result").hide();
+        }
+    });
+
+    // Listen for changes in total price or amount received
+    $("#total-price, #amount-received").on("input", calculateChange);
+
+    // Initial calculation when the page loads
+    calculateChange();
+</script>

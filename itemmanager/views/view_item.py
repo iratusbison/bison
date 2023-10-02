@@ -1,3 +1,4 @@
+import base64
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -12,6 +13,35 @@ from itemmanager.models.restockitem import RestockItem
 from itemmanager.forms import ItemForm
 
 import math
+
+import qrcode
+from io import BytesIO
+
+
+
+def generate_qr_code(self, item):
+    # Create a QR code instance
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    
+    # Add data to the QR code (you can customize this data as per your item details)
+    qr.add_data(f"Item: {item.item_name}\nPrice: ${item.price}")
+
+    # Make the QR code image
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+
+    # Save the QR code image to a BytesIO buffer
+    buffer = BytesIO()
+    qr_img.save(buffer, format="PNG")
+
+    return buffer
+
+
 
 
 class PricelistView(TemplateView):
@@ -52,24 +82,41 @@ class ItemDetailView(TemplateView):
     model = Item
     template_name = 'item_detail.html'
 
-    def get_context_data(self, *args, **kwargs):
-        item = kwargs.get('item')
-        restocks = RestockItem.objects.filter(
-            item=item).order_by('-restock__date_created')
-        revenue = item.total_revenue()
-        context = {
-            'item': item,
-            'restock': restocks[0] if restocks else None,
-            'active_tab': 'item' ,
-            'revenue' : revenue
-        }
-        return context
+    def generate_qr_code(self, item):
+        # Create a QR code instance
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+
+
+
+        # Make the QR code image
+        qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+
+        # Save the QR code image to a BytesIO buffer
+        buffer = BytesIO()
+        qr_img.save(buffer, format="PNG")
+
+        return buffer
 
     @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
         item = get_object_or_404(Item, pk=self.kwargs.get('pk'))
         context = self.get_context_data(item=item)
+
+        # Generate the QR code for the specific item
+        qr_code = self.generate_qr_code(item)
+        qr_code_base64 = base64.b64encode(qr_code.getvalue()).decode('utf-8')
+        qr_code.close()
+
+        context['qr_code'] = qr_code_base64
+
         return render(request, self.template_name, context)
+
 
 
 class ItemNewView(TemplateView):

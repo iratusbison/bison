@@ -5,7 +5,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, ListView
-from django.views.generic.detail import DetailView
+from django.views.generic.detail import DetailView 
 
 from baseapp.decorators import admin_required
 from itemmanager.models.sale import *
@@ -110,12 +110,12 @@ class SaleDetailView(TemplateView):
     def get_context_data(self, *args, **kwargs):
         sale = kwargs.get('sale')
         saleitems = SaleItem.objects.filter(sale=sale).order_by('item__item_name')
-        #total_revenue = sale.revenue
+       
         context = {
             'sale': sale,
             'saleitems': saleitems,
             'active_tab': 'sale',
-            #'total_revenue': total_revenue,
+            
         }
         return context
 
@@ -127,6 +127,7 @@ class SaleDetailView(TemplateView):
         context = self.get_context_data(sale=sale)
         return render(request, self.template_name, context)
     
+    from itemmanager.models.saleitem import SaleItem
 
 def calculate_total_revenue(sales):
     total_revenue = 0
@@ -164,8 +165,9 @@ class SaleListViewWithTotal(ListView):
                 revenue_by_month[month] = revenue
 
         context['revenue_by_month'] = revenue_by_month
-        
-                 # Calculate revenue by day
+
+    
+         # Calculate revenue by day
         revenue_by_day = {}
         for sale in sales:
             day = sale.date_created.day
@@ -177,8 +179,9 @@ class SaleListViewWithTotal(ListView):
                 revenue_by_day[day] = revenue
 
         context['revenue_by_day'] = revenue_by_day
-        
+
         return context
+
 
 
 
@@ -197,3 +200,24 @@ class SaleDeleteView(TemplateView):
     def get(self, request, *args, **kwargs):
         sale = get_object_or_404(Sale, pk=self.kwargs.get('pk'))
         return redirect('sale_detail', pk=sale.pk)
+
+'''
+class SaleListViewWithTotal(ListView):
+    model = Sale
+    template_name = 'sale_list_with_total.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Calculate the total sale amount for each sale
+        sales = context['object_list']
+        total_sale_amounts = []
+
+        for sale in sales:
+            sale_items = SaleItem.objects.filter(sale=sale)
+            total_amount = sum(item.sale_amount for item in sale_items)
+            total_sale_amounts.append(total_amount)
+
+        context['total_sale_amounts'] = total_sale_amounts
+        return context
+        '''

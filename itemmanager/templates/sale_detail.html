@@ -1,8 +1,33 @@
 {% extends "core/dashboard.html" %}
-{% load static %}
 {% load humanize %}
 {% load custom_filters %}
 {% block dashboard_content %}
+<head>
+    <!-- Add these script tags to include the required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.0/html2pdf.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<script>
+    $(document).ready(() => {
+        $('.modal').modal();
+
+        // Function to calculate and update change amount
+        function calculateChange() {
+            const totalPrice = parseFloat($("#total-price").val()) || 0;
+            const amountReceived = parseFloat($("#amount-received").val()) || 0;
+
+            const changeAmount = amountReceived - totalPrice;
+            $("#change-amount").text(changeAmount.toFixed(2));
+        }
+
+        // Listen for changes in total price or amount received
+        $("#total-price, #amount-received").on("input", calculateChange);
+
+        // Initial calculation when the page loads
+        calculateChange();
+    });
+</script>
+
 <div class="row">
     <div class="col s12 m12 l12">
         <nav class="clean">
@@ -14,7 +39,7 @@
                 </div>
             </div>
         </nav>
-                            
+
         <div class="card">
             <div class="card-content">
                 <div class="card-title row">
@@ -46,38 +71,65 @@
                                 <th>Item</th>
                                 <th style="text-align: right">Quantity</th>
                                 <th style="text-align: right">Revenue</th>
-                                
                             </tr>
                             {% for saleitem in saleitems %}
                             <tr>
                                 <td>{{ saleitem.item.item_name }}</td>
                                 <td style="text-align: right">x {{ saleitem.sale_amount }}</td>
-                                <td style="text-align: right">₹ {{ saleitem.sale_price|floatformat:0|intcomma }}</td>
-                               
+                                <td style="text-align: right">Rp {{ saleitem.sale_price|floatformat:0|intcomma }}</td>
                             </tr>
                             {% endfor %}
-                            <!-- Add this block of code after displaying individual sale items -->
-<div class="row">
-    <div class="col s12 m6">
-        <h5>Total Revenue:</h5>
-        <table class="clean">
-            <tr>
-                <td>Total:</td>
-                <td style="text-align: right">₹ 
-                    {{ saleitems|total_revenue|floatformat:0|intcomma }}
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
-
                         </table>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col s12 m6">
+                        <h5>Total Revenue:</h5>
+                        <table class="clean">
+                            <tr>
+                                <td>Total:</td>
+                                <td style="text-align: right">Rp {{ saleitems|total_revenue|floatformat:0|intcomma }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <button id="print-button" class="btn orange">Print Receipt</button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modified input field with total revenue value -->
+<div class="row">
+    <div class="input-field col s12">
+        <input id="total-price" type="number" name="total_price" step="0.01" value="{{ saleitems|total_revenue|floatformat:2 }}">
+        <label for="total-price">Total Price</label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="input-field col s12">
+        <input id="amount-received" type="number" name="amount_received" step="0.01">
+        <label for="amount-received">Amount Received</label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="input-field col s12">
+        <select id="payment-method" name="payment_method">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+        </select>
+        <label for="payment-method">Payment Method</label>
+    </div>
+</div>
+
+<div id="change-result" class="row">
+    <div class="col s12">
+        <p>Change: <span id="change-amount">0.00</span></p>
+    </div>
+</div>
+
 <div id="delete-modal" class="modal">
     <div class="modal-content">
         <h4>This action is <span class="red-text">IRREVERSIBLE</span></h4>
@@ -92,9 +144,3 @@
     </div>
 </div>
 {% endblock dashboard_content %}
-
-{% block dashboard_scripts %}
-    <script>
-        $(document).ready(() => $('.modal').modal());
-    </script>
-{% endblock dashboard_scripts %}
